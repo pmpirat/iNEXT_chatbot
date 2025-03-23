@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+        #chatbox { border: 1px solid #ccc; padding: 1rem; height: 400px; overflow-y: scroll; }
+        .message { margin: 0.5rem 0; }
+        .user { font-weight: bold; color: blue; }
+        .bot { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    <div id="chatbox"></div>
+    <input id="messageInput" type="text" placeholder="Zadej zprávu..." style="width: 80%;">
+    <button onclick="sendMessage()">Odeslat</button>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            addMessage("Ty", msg);
+            input.value = "";
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: msg })
+            });
+
+            const data = await response.json();
+            addMessage("Bot", data.response);
+        }
+
+        function addMessage(sender, text) {
+            const box = document.getElementById("chatbox");
+            const div = document.createElement("div");
+            div.className = "message " + (sender === "Ty" ? "user" : "bot");
+            div.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
