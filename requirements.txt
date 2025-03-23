@@ -1,7 +1,7 @@
 openai
 numpy==1.24.4
 spacy==3.8.3
-thinc==8.2.2
+thinc==8.4.0
 flask==2.3.3
 gunicorn==21.2.0
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0.tar.gz
