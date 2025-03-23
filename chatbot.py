@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 # Nastav svůj OpenAI klíč
-client = OpenAI(api_key="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")  # Zkráceno pro bezpečnost
+client = OpenAI(api_key="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")  # Zkráceno pro bezpečnost
 
 # Načti NLP model
 nlp = spacy.load("en_core_web_sm")
