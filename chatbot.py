@@ -3,12 +3,19 @@ import os
 import difflib
 from openai import OpenAI
 import spacy
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+# Model pro vektorové porovnání
+model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 # Nastav svůj OpenAI klíč
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")  # Zkráceno pro bezpečnost
 
 # Načti NLP model
 nlp = spacy.load("en_core_web_sm")
+
 
 class ConversationalAI:
     def __init__(self, memory_file='conversation_memory.json'):
@@ -32,17 +39,28 @@ class ConversationalAI:
             return matches[0]
         return None
 
-    def ask_openai(self, prompt):
+    def generate_response_with_gpt(self, user_input):
+        # Vytvoří prompt z naučených znalostí
+        knowledge_context = "\n".join([f"Q: {q}\nA: {a}" for q, a in self.memory.items()])
+
+        prompt = f"""
+Jsi chytrý chatbot, který se učí z komunikace. Tady jsou znalosti, které jsi nasbíral:
+{knowledge_context}
+
+Nyní odpověz na následující otázku:
+Q: {user_input}
+A:"""
+
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # Nebo "gpt-4" pokud máš přístup
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Jsi nápomocný konverzační asistent."},
+                    {"role": "system", "content": "Jsi přátelský a chytrý český chatbot, který se učí z rozhovorů."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7
             )
-            return response['choices'][0]['message']['content'].strip()
+            return response.choices[0].message.content.strip()
         except Exception as e:
             return f"[Chyba OpenAI API]: {e}"
 
@@ -60,19 +78,26 @@ class ConversationalAI:
             except:
                 return "Použij formát: learn: otázka => odpověď"
 
-        # Nejprve zkusí odpovědět ze své paměti
+        # Pokud zná odpověď – použije vlastní znalosti
         match = self.find_best_match(user_input_clean)
         if match:
             return self.memory[match]
 
-        # Když neví, zeptá se GPT
-        gpt_response = self.ask_openai(user_input)
-        # Volitelně se může automaticky učit z odpovědi GPT
+        # Pokud nezná – vygeneruje odpověď pomocí GPT
+        gpt_response = self.generate_response_with_gpt(user_input)
+        # Naučí se tuto novou frázi, aby příště už odpověděl sám
         self.memory[user_input_clean] = gpt_response
         self.save_memory()
         return gpt_response
 
-# Spuštění
-bot = ConversationalAI()
 
-print("Chatbot: Ahoj! Mluv se mnou. (napiš 'konec' pro ukončení)")
+# Pomocná funkce pro vektorový embedding (zatím nevyužitá)
+def get_embedding(text):
+    return model.encode(text)
+
+
+# Spuštění
+if __name__ == "__main__":
+    bot = ConversationalAI()
+
+    print("Chatbot: Ahoj! Mluv se mnou. (napiš 'konec' pro ukončení)")
