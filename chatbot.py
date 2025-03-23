@@ -1,11 +1,11 @@
 import json
 import os
 import difflib
-import openai
+from openai import OpenAI
 import spacy
 
 # Nastav svůj OpenAI klíč
-openai.api_key = "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"
+client = OpenAI(api_key="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")
 
 # Načti NLP model
 nlp = spacy.load("en_core_web_sm")
